@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyPortal — Notes, PYQs & Doubts</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand" onclick="go('home')">
+      <span class="logo-dot"></span> StudyPortal
+    </div>
+    <nav class="main-nav">
+      <button class="nav-link" data-view="home" onclick="go('home')">Semesters</button>
+      <button class="nav-link" data-view="doubts" onclick="go('doubts')">Doubts</button>
+      <button class="nav-link" id="devNavLink" data-view="developer" onclick="go('developer')" style="display:none;">Developer Panel</button>
+      <button class="nav-link" data-view="about" onclick="go('about')">About</button>
+    </nav>
+    <div class="header-auth" id="headerAuthArea"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- HOME: semester grid -->
+  <section id="view-home" class="view">
+    <h1 class="page-title">Browse by Semester</h1>
+    <p class="page-subtitle">Pick a semester to see its subjects, notes, past year questions and doubts.</p>
+    <div id="semesterGrid" class="grid grid-4"></div>
+  </section>
+
+  <!-- SUBJECTS list for a semester -->
+  <section id="view-subjects" class="view">
+    <button class="btn btn-ghost btn-sm" onclick="go('home')">&larr; All semesters</button>
+    <h1 class="page-title" id="subjectsSemTitle">Semester — Subjects</h1>
+    <div id="subjectList" class="subject-list"></div>
+  </section>
+
+  <!-- SUBJECT detail: notes / pyqs / doubts tabs -->
+  <section id="view-subject" class="view">
+    <button class="btn btn-ghost btn-sm" onclick="go('home')">&larr; Back to semesters</button>
+    <h1 class="page-title" id="subjectTitle">Subject</h1>
+    <div class="tabs" id="subjectTabs">
+      <button data-tab="notes" class="active" onclick="setResourceTab('notes')">Notes</button>
+      <button data-tab="pyqs" onclick="setResourceTab('pyqs')">Past Year Questions</button>
+      <button data-tab="doubts" onclick="setResourceTab('doubts')">Doubts</button>
+    </div>
+    <div id="subjectContent" class="grid grid-3"></div>
+  </section>
+
+  <!-- ALL DOUBTS -->
+  <section id="view-doubts" class="view">
+    <div class="section-heading">
+      <div>
+        <h1 class="page-title">Doubts &amp; Discussion</h1>
+        <p class="page-subtitle">Ask questions and help others across all subjects.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openAskDoubtModal(null)">Ask a doubt</button>
+    </div>
+    <div id="allDoubtsList" class="card"></div>
+  </section>
+
+  <!-- DOUBT THREAD -->
+  <section id="view-doubtThread" class="view">
+    <button class="btn btn-ghost btn-sm" onclick="go('doubts')">&larr; All doubts</button>
+    <div id="doubtThreadContent"></div>
+  </section>
+
+  <!-- DEVELOPER PANEL -->
+  <section id="view-developer" class="view">
+    <h1 class="page-title">Developer Panel</h1>
+    <p class="page-subtitle">Upload resources, manage subjects, and rectify reported errors. Visible to developer accounts only.</p>
+    <div class="tabs" id="devTabs">
+      <button data-devtab="upload" class="active" onclick="setDevTab('upload')">Upload Notes / PYQs</button>
+      <button data-devtab="manage" onclick="setDevTab('manage')">Manage Files</button>
+      <button data-devtab="subjects" onclick="setDevTab('subjects')">Subjects</button>
+      <button data-devtab="reports" onclick="setDevTab('reports')">Error Reports</button>
+    </div>
+
+    <div id="devPanel-upload" class="dev-panel grid grid-2">
+      <div class="card">
+        <h3>Upload Notes (PDF)</h3>
+        <form class="stacked" id="uploadNoteForm">
+          <label>Subject</label>
+          <select name="subject_id" id="noteSubjectSelect" required></select>
+          <label>Title</label>
+          <input type="text" name="title" required />
+          <label>Description (optional)</label>
+          <textarea name="description" rows="2"></textarea>
+          <label>PDF file</label>
+          <input type="file" name="file" accept="application/pdf" required />
+          <button class="btn btn-primary" type="submit">Upload Note</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Upload Past Year Question (PDF)</h3>
+        <form class="stacked" id="uploadPyqForm">
+          <label>Subject</label>
+          <select name="subject_id" id="pyqSubjectSelect" required></select>
+          <label>Title</label>
+          <input type="text" name="title" required placeholder="e.g. Final Exam 2081" />
+          <label>Year</label>
+          <input type="text" name="year" placeholder="e.g. 2081" />
+          <label>PDF file</label>
+          <input type="file" name="file" accept="application/pdf" required />
+          <button class="btn btn-primary" type="submit">Upload PYQ</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="devPanel-manage" class="dev-panel" style="display:none;">
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Uploaded Notes</h3>
+          <div id="devNotesList"></div>
+        </div>
+        <div class="card">
+          <h3>Uploaded PYQs</h3>
+          <div id="devPyqsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="devPanel-subjects" class="dev-panel" style="display:none;">
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Add a subject</h3>
+          <form class="stacked" id="addSubjectForm">
+            <label>Semester (1–8)</label>
+            <input type="number" name="semester" min="1" max="8" required />
+            <label>Subject name</label>
+            <input type="text" name="name" required />
+            <label>Code (optional)</label>
+            <input type="text" name="code" />
+            <button class="btn btn-primary" type="submit">Add subject</button>
+          </form>
+        </div>
+        <div class="card">
+          <h3>Existing subjects</h3>
+          <div id="devSubjectsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="devPanel-reports" class="dev-panel" style="display:none;">
+      <h3 style="margin-top:0;">Reported issues — the fix-it room</h3>
+      <p class="page-subtitle">Anything students flag as wrong, broken, or mislabeled shows up here so you can correct it.</p>
+      <div id="devReportsList"></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="view-about" class="view">
+    <h1 class="page-title">About StudyPortal</h1>
+    <div class="card">
+      <p>StudyPortal is a simple, open study hub organized by semester and subject. Students can read notes and
+        past year questions, rate resources, and ask or answer doubts. Verified developer accounts can upload
+        and maintain content, and resolve issues the community reports.</p>
+      <p style="color:var(--muted);font-size:.9rem;">Built with a Node.js/Express + SQLite backend and a
+        framework-free HTML/CSS/JS frontend — see the README in the project files for setup and deployment.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <h4>StudyPortal</h4>
+      <p>A simple, professional study hub for notes, past year questions, and peer doubts — organized by semester and subject.</p>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <ul>
+        <li><a href="#" onclick="go('home');return false;">Semesters</a></li>
+        <li><a href="#" onclick="go('doubts');return false;">Doubts</a></li>
+        <li><a href="#" onclick="go('about');return false;">About</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For developers</h4>
+      <ul>
+        <li><a href="#" onclick="go('developer');return false;">Developer Panel</a></li>
+        <li><a href="../backend/README.md" target="_blank">API docs (README)</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Support</h4>
+      <ul>
+        <li>Found an error on a PDF? Use the "Report issue" button on any resource.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© <span id="year"></span> StudyPortal. Built for learning purposes.</div>
+</footer>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="modal-backdrop" id="modalBackdrop" style="display:none;" onclick="if(event.target===this) closeModal()">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
